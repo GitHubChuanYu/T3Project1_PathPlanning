@@ -78,3 +78,19 @@ The transition among these four states can be decribed as follows:
 To check whether whether it is possible to do lane change, we need to use sensor fusion data to predict the future position of vehicle in the target lane and compare the **s** position of it with future **s** position (in Frenet coordinate) of self-driving car to decide whether we can do lane change or not.
 
 All the behavior planning code is between line 128 and line 204 in [main.cpp](https://github.com/GitHubChuanYu/T3Project1_PathPlanning/blob/master/src/main.cpp) file.
+
+### Trajectory generation
+
+To ensure smooth trajectory generation, the **spline** method is used to fit target way points. That is why [spline.h](https://github.com/GitHubChuanYu/T3Project1_PathPlanning/blob/master/src/spline.h) is included.
+
+As suggested in [Project Q&A](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/27800789-bc8e-4adc-afe0-ec781e82ceae/lessons/23add5c6-7004-47ad-b169-49a5d7b1c1cb/concepts/3bdfeb8c-8dd6-49a7-9d08-beff6703792d), five way points are picked for spline fitting. The first two points are from previous path (or if previous path is almost empty, then use current and previous car location x, y). The rest three way points are transformed from three waypoints defined in Frenet coordinate with target **s** of 30m, 60m, and 90m away from current self-driving car **s** and target **d** in target lane calcuated from **behavior planning** part. The code is between line 233 and line 294 in [main.cpp](https://github.com/GitHubChuanYu/T3Project1_PathPlanning/blob/master/src/main.cpp) file.
+
+After spline trajectory is calculated. We can calculate the final waypoints for path planner:
+
+* All the previous path waypoints are included in current path waypoints to ensure smooth path to avoid large value of acceleration and jerk.
+
+* The total waypoints are 50, so the rest of waypoints (50 - previous path waypoints) are generated from fitted spline curve:
+
+  * First to ensure the planned waypoints along spline will not have large acceleration and jerk, a method is introduced in [Project Q&A](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/27800789-bc8e-4adc-afe0-ec781e82ceae/lessons/23add5c6-7004-47ad-b169-49a5d7b1c1cb/concepts/3bdfeb8c-8dd6-49a7-9d08-beff6703792d), five way points are picked for spline fitting. The first two points are from previous path (or if previous path is almost empty, then use current and previous car location x, y) as shown in this figure:
+
+
