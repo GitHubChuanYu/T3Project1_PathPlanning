@@ -115,13 +115,13 @@ int main() {
           }
           
           //Maximum speed limit
-          const double safe_speed_limit = 49; // mph;
+          const double max_speed_limit = 49; // mph;
           //Minimum speed to ensure path smoother spline library gets coordinates in ascending order
-          const double minimum_speed_limit = 3; // mph;
+          const double min_speed_limit = 3; // mph;
           
           //Safe distance between cars constraints
           //Safe distance ahead of our car
-          const int safe_range_ahead = 25;
+          const int safe_range_ahead = 28;
           //Safe distance behind our car. This is used in lane shift
           const int safe_range_behind = 10;
           
@@ -148,9 +148,9 @@ int main() {
             o_car_lane = -1.0;
           }
           //Not interested if cars are not on the same side of road/divider
-            if (o_car_lane == -1) {
+          if (o_car_lane == -1) {
                 continue;
-            }
+          }
 
           //Calculate the velocity and predicted Frenet s coordinate of car
           double o_car_vel = sqrt(pow(o_car_vx, 2) + pow(o_car_vy, 2));
@@ -158,59 +158,58 @@ int main() {
 
           //If other car is in the same lane
           if (o_car_lane == lane) {
-            //If car is getting closer than the safe range
-            if ((o_car_s_ahead > car_s) && ((o_car_s_ahead - car_s) < safe_range_ahead)) {
-              is_car_ahead = true;
-            }
+              //If car is getting closer than the safe range
+              if ((o_car_s_ahead > car_s) && ((o_car_s_ahead - car_s) < safe_range_ahead)) {
+                  is_car_ahead = true;
+              }
           } //If other car is the lane right of our car
           else if ((o_car_lane - lane) == 1) {
-            //If car is getting closer than the safe range either from behind or is ahead
-                if (((o_car_s_ahead > car_s) && ((o_car_s_ahead - car_s) < safe_range_ahead)) ||
-                    ((car_s > o_car_s_ahead) && ((car_s - o_car_s_ahead) < safe_range_behind))) {
-              is_car_right = true;
-            }
-            } //If other car is the lane left of our car
+              //If car is getting closer than the safe range either from behind or is ahead
+              if (((o_car_s_ahead > car_s) && ((o_car_s_ahead - car_s) < safe_range_ahead)) ||
+                  ((car_s > o_car_s_ahead) && ((car_s - o_car_s_ahead) < safe_range_behind))) {
+                  is_car_right = true;
+              }
+          } //If other car is the lane left of our car
           else if ((o_car_lane - lane) == -1) {
-            //If car is getting closer than the safe range either from behind or is ahead
-                if (((o_car_s_ahead > car_s) && ((o_car_s_ahead - car_s) < safe_range_ahead)) ||
-                ((car_s > o_car_s_ahead) && ((car_s - o_car_s_ahead) < safe_range_behind))) {
-              is_car_left = true;
-            }
+              //If car is getting closer than the safe range either from behind or is ahead
+              if (((o_car_s_ahead > car_s) && ((o_car_s_ahead - car_s) < safe_range_ahead)) ||
+                  ((car_s > o_car_s_ahead) && ((car_s - o_car_s_ahead) < safe_range_behind))) {
+                  is_car_left = true;
+              }
           }
         }
 
-        /** BEHAVIOR PLANNER COMPONENT
-          Deducts the correct behavior the car should follow. Following are the defined behaviors:
-          1. Continue in current lane and accelerate reaching speed limit
-          2. Slow down in current lane in order to avoid collision with car ahead
-          3. Change lane to left with current speed if not in leftmost lane
-          4. Change lane to right with current speed if not in rightmost lane
+        /** Simple behavior planning logic with four states
+          1. Continue in current lane and accelerate to max speed limit if there is no vehicle ahead
+          2. Slow down in current lane in order to avoid collision with car ahead if there is no poential to change lane
+          3. Change lane to left lane with current speed if not in leftmost lane, left lane is safe without collision potential, and front vehicle ahead is slowing down.
+          4. Change lane to right with current speed if not in rightmost lane, right lane is safe without collision potential, and front vehicle ahead is slowing down.
         */
 
         //Car ahead is getting closer
         if (is_car_ahead) {
-          //If left lane shift is possible and our car is not in leftmost lane
+            //If left lane shift is possible and our car is not in leftmost lane
             if ((!is_car_left) && (lane != 0)) {
                 lane -= 1;
             } //If right lane shift is possible and our car is not in rightmost lane
-          else if ((!is_car_right) && (lane != 2)) {
+            else if ((!is_car_right) && (lane != 2)) {
                 lane += 1;
-            } //No lane change is possible, decelerate by 0.5mph or 0.22 m/s
-          else {
+            } //No lane change is possible, decelerate with 5m/s^2 deceleration target
+            else {
                 ref_vel -= 0.224;
             }
-        } //No car is ahead and the road is clear in current lane, accelerate at 0.5mph or 0.22 m/s
-          else {
+        } //No car is ahead and the road is clear in current lane, accelerate with 5m/s^2 acceleration target
+        else {
             ref_vel += 0.224;
         }
         
         //Cap the speed of car to safe speed limit slightly less than speed limit
-        if (ref_vel >= safe_speed_limit) {
-          ref_vel = safe_speed_limit;
+        if (ref_vel >= max_speed_limit) {
+          ref_vel = max_speed_limit;
         }
         //Minimum speed of car is ensured to avoid spline library exception
-        if (ref_vel <= minimum_speed_limit) {
-          ref_vel = minimum_speed_limit;
+        if (ref_vel <= min_speed_limit) {
+          ref_vel = min_speed_limit;
         }
 
           json msgJson;
