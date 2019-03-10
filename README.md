@@ -5,6 +5,7 @@ This is Chuan's writeup report for Udacity self-driving car nano degree program 
 [//]: # (Image References)
 
 [image1]: ./BehaviorPlanning.png "BehaviorPlanning"
+[image2]: ./visual_aid.png "visual_aid"
 
 ## Goals
 In this project the goal is to safely navigate around a virtual highway with other traffic that is driving +-10 MPH of the 50 MPH speed limit. The self driving car's localization and sensor fusion data will be provided, there is also a sparse map list of waypoints around the highway. The car should try to go as close as possible to the 50 MPH speed limit, which means passing slower traffic when possible, note that other cars will try to change lanes too. The car should avoid hitting other cars at all cost as well as driving inside of the marked road lanes at all times, unless going from one lane to another. The car should be able to make one complete loop around the 6946m highway. Since the car is trying to go 50 MPH, it should take a little over 5 minutes to complete 1 loop. Also the car should not experience total acceleration over 10 m/s^2 and jerk that is greater than 10 m/s^3.
@@ -83,7 +84,9 @@ All the behavior planning code is between line 128 and line 204 in [main.cpp](ht
 
 To ensure smooth trajectory generation, the **spline** method is used to fit target way points. That is why [spline.h](https://github.com/GitHubChuanYu/T3Project1_PathPlanning/blob/master/src/spline.h) is included.
 
-As suggested in [Project Q&A](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/27800789-bc8e-4adc-afe0-ec781e82ceae/lessons/23add5c6-7004-47ad-b169-49a5d7b1c1cb/concepts/3bdfeb8c-8dd6-49a7-9d08-beff6703792d), five way points are picked for spline fitting. The first two points are from previous path (or if previous path is almost empty, then use current and previous car location x, y). The rest three way points are transformed from three waypoints defined in Frenet coordinate with target **s** of 30m, 60m, and 90m away from current self-driving car **s** and target **d** in target lane calcuated from **behavior planning** part. The code is between line 233 and line 294 in [main.cpp](https://github.com/GitHubChuanYu/T3Project1_PathPlanning/blob/master/src/main.cpp) file.
+As suggested in [Project Q&A](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/27800789-bc8e-4adc-afe0-ec781e82ceae/lessons/23add5c6-7004-47ad-b169-49a5d7b1c1cb/concepts/3bdfeb8c-8dd6-49a7-9d08-beff6703792d), five way points are picked for spline fitting. The first two points are from previous path (or if previous path is almost empty, then use current and previous car location x, y). The rest three way points are transformed from three waypoints defined in Frenet coordinate with target **s** of 30m, 60m, and 90m away from current self-driving car **s** and target **d** in target lane calcuated from **behavior planning** part. The code is between line 233 and line 294 in [main.cpp](https://github.com/GitHubChuanYu/T3Project1_PathPlanning/blob/master/src/main.cpp) file:
+
+* Note: During spline fitting, all the waypoints are transformed from global coordinate system to car's coordinate system so that they are easier for calculating. The detailed theory for this transform can be found in this [link](https://www.miniphysics.com/coordinate-transformation-under-rotation.html).
 
 After spline trajectory is calculated. We can calculate the final waypoints for path planner:
 
@@ -91,6 +94,11 @@ After spline trajectory is calculated. We can calculate the final waypoints for 
 
 * The total waypoints are 50, so the rest of waypoints (50 - previous path waypoints) are generated from fitted spline curve:
 
-  * First to ensure the planned waypoints along spline will not have large acceleration and jerk, a method is introduced in [Project Q&A](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/27800789-bc8e-4adc-afe0-ec781e82ceae/lessons/23add5c6-7004-47ad-b169-49a5d7b1c1cb/concepts/3bdfeb8c-8dd6-49a7-9d08-beff6703792d), five way points are picked for spline fitting. The first two points are from previous path (or if previous path is almost empty, then use current and previous car location x, y) as shown in this figure:
+  * First to ensure the planned waypoints along spline will not have large acceleration and jerk, a method is introduced in [Project Q&A](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/27800789-bc8e-4adc-afe0-ec781e82ceae/lessons/23add5c6-7004-47ad-b169-49a5d7b1c1cb/concepts/3bdfeb8c-8dd6-49a7-9d08-beff6703792d) as shown in this figure:
 
-
+  ![alt text][image2]
+  
+  * Then rest of waypoints calculated from fitted spline are tranformed back from car's coordinate system to global (map's) coordinate system.
+  
+The code for overall smooth trajectory generation is between line 300 and line 335 in [main.cpp](https://github.com/GitHubChuanYu/T3Project1_PathPlanning/blob/master/src/main.cpp) file. 
+  
