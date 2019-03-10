@@ -1,6 +1,11 @@
 # CarND-Path-Planning-Project
 This is Chuan's writeup report for Udacity self-driving car nano degree program term 3 project 1 Path Planning
 
+---
+[//]: # (Image References)
+
+[image1]: ./BehaviorPlanning.png "BehaviorPlanning"
+
 ## Goals
 In this project the goal is to safely navigate around a virtual highway with other traffic that is driving +-10 MPH of the 50 MPH speed limit. The self driving car's localization and sensor fusion data will be provided, there is also a sparse map list of waypoints around the highway. The car should try to go as close as possible to the 50 MPH speed limit, which means passing slower traffic when possible, note that other cars will try to change lanes too. The car should avoid hitting other cars at all cost as well as driving inside of the marked road lanes at all times, unless going from one lane to another. The car should be able to make one complete loop around the 6946m highway. Since the car is trying to go 50 MPH, it should take a little over 5 minutes to complete 1 loop. Also the car should not experience total acceleration over 10 m/s^2 and jerk that is greater than 10 m/s^3.
 
@@ -68,3 +73,8 @@ In this project, the **behavior planning** part is a simple state transition log
 * State 4: Change to left lane
 
 The transition among these four states can be decribed as follows:
+  ![alt text][image1]
+  
+To check whether whether it is possible to do lane change, we need to use sensor fusion data to predict the future position of vehicle in the target lane and compare the **s** position of it with future **s** position (in Frenet coordinate) of self-driving car to decide whether we can do lane change or not.
+
+All the behavior planning code is between line 128 and line 204 in [main.cpp](https://github.com/GitHubChuanYu/T3Project1_PathPlanning/blob/master/src/main.cpp) file.
